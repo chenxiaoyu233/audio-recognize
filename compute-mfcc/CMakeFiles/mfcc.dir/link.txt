@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmfcc.a  CMakeFiles/mfcc.dir/compute-mfcc.cc.o CMakeFiles/mfcc.dir/mfcc.cc.o
+/usr/bin/ranlib libmfcc.a

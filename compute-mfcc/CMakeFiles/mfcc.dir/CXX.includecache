@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/blook/Desktop/audio-recognize/compute-mfcc/Mfcc.h
+experimental/filesystem
+-
+string
+-
+
+/home/blook/Desktop/audio-recognize/compute-mfcc/compute-mfcc.cc
+mfcc.cc
+/home/blook/Desktop/audio-recognize/compute-mfcc/mfcc.cc
+Mfcc.h
+/home/blook/Desktop/audio-recognize/compute-mfcc/Mfcc.h
+
+/home/blook/Desktop/audio-recognize/compute-mfcc/mfcc.cc
+fstream
+-
+iostream
+-
+algorithm
+-
+numeric
+-
+complex
+-
+vector
+-
+map
+-
+math.h
+-
+wavHeader.h
+/home/blook/Desktop/audio-recognize/compute-mfcc/wavHeader.h
+
+/home/blook/Desktop/audio-recognize/compute-mfcc/wavHeader.h
+cstdint
+-
+

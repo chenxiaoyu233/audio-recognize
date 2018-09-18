@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcuda_kernel.a  CMakeFiles/cuda_kernel.dir/cuda_kernel_generated_kernels.cu.o
+/usr/bin/ranlib libcuda_kernel.a
