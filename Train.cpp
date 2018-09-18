@@ -1,14 +1,5 @@
 #include "CXYNN/CXYNeuronNetwork.h" // add the NN's header
-#include "compute-mfcc/Mfcc.h" // 用于解析mfcc
 #include <fstream>
-
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-
-
-void GenMfccFiles() {
-	extractMfcc("../data");
-}
 
 // 每帧的特征向量的宽度
 const int frameWidth = 40;
@@ -45,6 +36,7 @@ void buildNetwork() {
 
 	estimator = new Estimator_Softmax(Output);
 
+#ifdef ENABLE_CUDA
 	Input -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	C1 -> SetActionFunc(kernel_tanh, kernel_tanhDel);
 	//Dp1 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
@@ -55,6 +47,18 @@ void buildNetwork() {
 	D2 -> SetActionFunc(kernel_tanh, kernel_tanhDel);
 	//Dp3 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	Output -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+#else
+	Input -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
+	C1 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
+	//Dp1 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	S1 -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
+	C2 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
+	//Dp2 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	D1 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
+	D2 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
+	//Dp3 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Output -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
+#endif
 
 	C1 -> InputLayer(Input);
 	//Dp1 -> InputLayer(C1);
@@ -75,105 +79,6 @@ vector <Matrix<double>*> testLabel;
 
 vector <string> wordList; // 可能出现的单词表
 vector <string> dirList;  // 对应的训练数据路径
-
-// 读取单个数据文件
-void readSingleData(string dataPathStr, int idx, vector<Matrix<double>*> &data, vector<Matrix<double>*> &label) {
-	ifstream fin(dataPathStr);
-	int frameNum = 0; fin >> frameNum;
-	if(frameNum <= 0) return;
-	Matrix<double> tmp(frameNum, frameWidth);
-	for(int i = 1; i <= frameNum; i++) {
-		double len = 0;
-		for(int j = 1; j <= frameWidth; j++) {
-			fin >> tmp(i, j);
-			len += tmp(i, j) * tmp(i, j);
-		}
-		len = sqrt(len);
-		if(len == 0) len = 0.00001;
-		for(int j = 1; j <= frameWidth; j++) { // 归一化 for test
-			tmp(i, j) /= len;
-		}
-	}
-
-	Matrix<double> *lab = new Matrix<double>(1, 1);
-	(*lab)(1) = idx;
-
-	// 通过滑动窗口来得到训练数据
-	for(int i = 1; i <= frameNum - windowWidth + 1; i++) {
-		Matrix<double> *win = new Matrix<double>(windowWidth, frameWidth);
-		for(int row = 1; row <= windowWidth; row++)
-			for(int col = 1; col <= frameWidth; col++) {
-				(*win)(row, col) = tmp(i+row-1, col);
-			}
-		data.push_back(win);
-		label.push_back(lab);
-	}
-	fin.close();
-}
-
-// 读取单个文件夹下的训练数据, 并为每个训练数据生产Label
-void readCaseData(string dataPathStr, double rate, double idx){
-	puts(("Reading: " + dataPathStr).c_str()); // 输出进度
-	fs::path dataPath(dataPathStr);
-	int count = 0, lim = 500;
-	for(auto &p: fs::directory_iterator(dataPath)) ++count;
-	if(count > lim) count = lim;
-	int trainNum = count * rate; count = 0;
-	for(auto &p: fs::directory_iterator(dataPath)) { ++count;
-		if(count <= trainNum) readSingleData(p.path().string(), idx, trainData, trainLabel);
-		else readSingleData(p.path().string(), idx, testData, testLabel);
-		if(count >= lim) break;
-	}
-}
-
-//读取训练数据， 并按照比例对训练数据和测试数据进行划分
-void readTrainData(string dataPathStr, double rate) {
-	wordList.clear(); dirList.clear(); // init
-	fs::path dataPath(dataPathStr);
-	int count = 0, lim = 6;
-	for(auto &p: fs::directory_iterator(dataPath)) {
-		fs::path curPath = p.path();
-		if(fs::is_directory(p.status())) { 
-			count++;
-			wordList.push_back(curPath.filename().string()); // 将出现的单词添加到单词表
-			dirList.push_back(curPath.string() + "/mfcc");   // 将对应的路径添加到路径表
-			if (count >= lim) {
-				break;
-			}
-		}
-	}
-	for (int i = 0; i < wordList.size(); i++) {
-		readCaseData(dirList[i], rate, i+1);
-	}
-}
-
-// 训练
-void train() {
-	FuncAbstractor functionAbstractor(Input, Output, estimator, 0.1);
-
-	Optimizer optimizer(
-		&functionAbstractor,
-		0.05,
-		10000,
-		trainData,
-		trainLabel,
-		"train_backup",
-		2333,
-		-0.20, 0.20, 0.000001,
-		100
-	);
-
-	// reg the dropout layers
-	//optimizer.AddDropoutLayer(Dp1);
-	//optimizer.AddDropoutLayer(Dp2);
-	//optimizer.AddDropoutLayer(Dp3);
-
-	optimizer.SetSaveStep(5);
-	optimizer.TrainFromFile();
-	//optimizer.TrainFromNothing();
-
-	optimizer.Save();
-}
 
 // 测试
 void test() {
@@ -219,10 +124,10 @@ void test() {
 
 int main() {
 	//GenMfccFiles();
+#ifdef ENABLE_CUDA
 	cuda_init();
+#endif
 	buildNetwork();
-	readTrainData("../data", 0.8);
-	//train();
 	test();
 	return 0;
 }

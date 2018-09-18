@@ -150,28 +150,3 @@ int computeMfcc(const char *wavPath, const char *mfcPath) {
     return 0;
 }
 
-// blook added
-#include "Mfcc.h"
-
-// 从dataPath目录中提取出mfcc
-void extractMfcc(string dataPath) {
-	fs::path dp(dataPath); // create the datapath
-	for(auto &p: fs::directory_iterator(dp)) { 
-		if(fs::is_directory(p.status())) {
-			computeMfccUnderDir(p.path());
-		}
-	}
-}
-
-void computeMfccUnderDir(fs::path subPath) {
-	string MfccPathStr = subPath.string() + "/mfcc";
-	fs::path MfccPath(MfccPathStr);
-	if(!fs::exists(fs::status(MfccPath))) fs::create_directory(MfccPath);
-
-	for(auto &p: fs::directory_iterator(subPath)) {
-		fs::path curFile = p.path();
-		string newPath = MfccPath.string() + "/" + curFile.filename().string() + ".mfcc";
-		computeMfcc(curFile.string().c_str(), newPath.c_str());
-		cerr << curFile.string() << " => " << newPath << "\n";
-	}
-}
