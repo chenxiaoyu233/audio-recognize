@@ -36,7 +36,7 @@ typedef std::map<int,std::map<int,c_d> > twmap;
 
 class MFCC {
 
-private:
+public:
     const double PI = 4*atan(1.0);   // Pi = 3.14...
     int fs;
     twmap twiddle;
@@ -45,7 +45,6 @@ private:
     v_d frame, powerSpectralCoef, lmfbCoef, hamming, mfcc, prevsamples;
     m_d fbank, dct;
 
-private:
     // Hertz to Mel conversion
     inline double hz2mel (double f) {
         return 2595*std::log10 (1+f/700);
@@ -245,7 +244,8 @@ public:
         frame = prevsamples;
         for (int i=0; i<N; i++)
             frame.push_back(samples[i]);
-        prevsamples.assign(frame.begin()+frameShiftSamples, frame.end());
+
+		prevsamples.assign(frame.begin()+frameShiftSamples, frame.end());
 
         preEmphHam();
         computePowerSpec();
@@ -312,3 +312,4 @@ public:
         return 0;
     }
 };
+

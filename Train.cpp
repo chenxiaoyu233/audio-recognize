@@ -1,10 +1,7 @@
 #include "CXYNN/CXYNeuronNetwork.h" // add the NN's header
-#include <fstream>
+#include "compute-mfcc/Mfcc.h" // 用于计算mfcc的库
 
-// 每帧的特征向量的宽度
-const int frameWidth = 40;
-// 滑动窗口大小
-const int windowWidth = 80;
+const int caseNumber = 6;
 
 DenseLayer *Input;
 ConvLayer *C1; // Conv 1
@@ -32,7 +29,7 @@ void buildNetwork() {
 	D1 = new DenseLayer(1, 32);
 	D2 = new DenseLayer(1, 128);
 	//Dp3 = new DropoutLayer(1, 1, 128, 0.8, isTrain);
-	Output = new DenseLayer(1, 6); // for 10 case
+	Output = new DenseLayer(1, caseNumber); // for 10 case
 
 	estimator = new Estimator_Softmax(Output);
 
@@ -74,60 +71,55 @@ void buildNetwork() {
 vector <Matrix<double>*> trainData;
 vector <Matrix<double>*> trainLabel;
 
-vector <Matrix<double>*> testData;
-vector <Matrix<double>*> testLabel;
+FuncAbstractor *functionAbstractor;
+Predictor *predictor;
 
-vector <string> wordList; // 可能出现的单词表
-vector <string> dirList;  // 对应的训练数据路径
+void BuildPredictor() {
+	functionAbstractor = new FuncAbstractor(Input, Output, estimator, 0.1);
 
-// 测试
-void test() {
-	FuncAbstractor functionAbstractor(Input, Output, estimator, 0.1);
-
-	Predictor predictor(
-		&functionAbstractor,
+	predictor = new Predictor(
+		functionAbstractor,
 		0.1,
 		2000,
 		trainData,
 		trainLabel,
-		"train_backup",
+		"Assets/Plugins/audio-recognize/debug/train_backup",
 		2333,
 		-0.20, 0.20, 0.000001,
 		100
 	);
 
-	// reg the dropout layers
-	//predictor.AddDropoutLayer(Dp1);
-	//predictor.AddDropoutLayer(Dp2);
-	//predictor.AddDropoutLayer(Dp3);
-
 	Matrix<double> *mat;
-	FOR(i, 1, wordList.size()) {
+	FOR(i, 1, caseNumber) {
 		mat = new Matrix<double>(1, 1);
 		(*mat)(1) = i;
-		predictor.AddCase(i, mat); // 这里的内存泄漏了, 但是现在并不想管
+		predictor -> AddCase(i, mat); // 这里的内存泄漏了, 但是现在并不想管
 	}
-
-	int correct = 0;
-	for (int i = 0; i < testData.size(); i++) {
-		int ans = 0;
-		//FOR(j, 1, wordList.size()) if ((*(testLabel[i]))(1, j) > 0.5) ans = j;
-		ans = (*(testLabel[i]))(1);
-		//printf("%d : %d\n", ans-1, predictor.Classify(testData[i]));
-		if (ans == predictor.Classify(testData[i])) correct += 1;
-		cerr << i << "/" << correct << endl;
-		cerr << ans << " " << predictor.Classify(testData[i]) << endl;
-	}
-	printf("%d/%d\n", correct, testData.size());
-
 }
 
-int main() {
-	//GenMfccFiles();
-#ifdef ENABLE_CUDA
-	cuda_init();
-#endif
+FILE *logOut;
+
+extern "C" void InitCXYNN() {
 	buildNetwork();
-	test();
-	return 0;
+	BuildPredictor();
+	//logOut = fopen("Assets/CppLog", "w");
 }
+
+Matrix<double> windowMatrixBuffer(windowWidth, frameWidth);
+
+extern "C" int Predict() {
+	//fprintf(logOut, "\n\n");
+	FOR(x, 1, windowWidth) {
+		FOR(y, 1, frameWidth) {
+			windowMatrixBuffer(x, y) = MfccWindow[(x-1) * frameWidth + (y-1)];
+			//fprintf(logOut, "%.4lf ", MfccWindow[(x-1) * frameWidth + (y - 1)]);
+		}
+		//fprintf(logOut, "\n");
+	}
+	return predictor -> Classify(&windowMatrixBuffer);
+}
+
+extern "C" int testCS() {
+	return 233;
+}
+

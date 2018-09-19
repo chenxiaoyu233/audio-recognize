@@ -1,6 +1,3 @@
-# 选项
-option (ENABLE_CUDA "enable the cuda" OFF)
-option (NDEBUG "disable the assert" OFF)
 
 # cmake 控制的配置头文件
 configure_file (

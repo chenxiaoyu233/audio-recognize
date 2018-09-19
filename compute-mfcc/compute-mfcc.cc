@@ -95,7 +95,7 @@ int processList (MFCC &mfccComputer, const char* wavListPath, const char* mfcLis
 }
 
 // Main
-int computeMfcc(const char *wavPath, const char *mfcPath) {
+MFCC* mfccCreate() {
     std::string USAGE = "compute-mfcc : MFCC Extractor\n";
     USAGE += "OPTIONS\n";
     USAGE += "--input           : Input 16 bit PCM Wave file\n";
@@ -135,18 +135,47 @@ int computeMfcc(const char *wavPath, const char *mfcPath) {
     int highFreq = (highFreqC ? atoi(highFreqC) : samplingRate/2);
 
     // Initialise MFCC class instance
-    MFCC mfccComputer (samplingRate, numCepstra, winLength, frameShift, numFilters, lowFreq, highFreq);
-
-    // Process wav files
-    if (wavPath && mfcPath)
-        if (processFile (mfccComputer, wavPath, mfcPath))
-            return 1;
-
-    // Process lists
-    if (wavListPath && mfcListPath)
-        if (processList (mfccComputer, wavListPath, mfcListPath))
-            return 1;
-
-    return 0;
+	return new MFCC (samplingRate, numCepstra, winLength, frameShift, numFilters, lowFreq, highFreq);
 }
 
+#include "Mfcc.h"
+
+MFCC *mfccComputer;
+int16_t *FrameBuffer;
+int len; // 每一帧的输入的长度
+deque <double> MfccWindow;
+
+extern "C" void InitMfcc(int N) {
+	mfccComputer = mfccCreate();
+	len = N;
+	FrameBuffer = new int16_t[N];
+	for(int i = 0; i < frameWidth; i++) 
+		for(int j = 0; j < windowWidth; j++) {
+			MfccWindow.push_back(0);
+		}
+}
+
+// 设置当前FrameBuffer的某一位
+extern "C" void SetValue(int idx, int16_t val) {
+	FrameBuffer[idx] = val;
+}
+
+extern "C" void AddFrame() {
+	vector<double> spec = mfccComputer -> processFrame(FrameBuffer, len);
+	// Debug
+	//for( int i = 0; i < spec.size()-1; i++) fprintf(logOut, "%.4lf ", spec[i]);
+	//fprintf(logOut, "\n");
+	
+	// 单位化
+	double len = 0; // 模长
+	for (int i = 0; i < spec.size()-1; i++) len += spec[i] * spec[i];
+	len = sqrt(len);
+	for (int i = 0; i < spec.size()-1; i++) spec[i] /= len;
+	
+	for(int i = 0; i < spec.size()-1; i++) MfccWindow.push_back(spec[i]);
+	for(int i = 0; i < spec.size()-1; i++) MfccWindow.pop_front();
+}
+
+extern "C" void SetPrev(int idx, int16_t val) {
+	mfccComputer -> prevsamples[idx] = val;
+}

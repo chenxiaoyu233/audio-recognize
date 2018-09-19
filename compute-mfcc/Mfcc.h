@@ -1,13 +1,20 @@
 #ifndef __MFCC_H__
 #define __MFCC_H__
 
-#include <experimental/filesystem>
 #include <string>
-
-namespace fs = std::experimental::filesystem;
+#include <deque>
 using namespace std;
-// 使用compute-mfcc从dataPath中计算出mfcc, 并保存为%.mfcc
-void extractMfcc(string dataPath);
-void computeMfccUnderDir(fs::path subPath);
+
+extern FILE *logOut;
+extern "C" void InitMfcc(int len);
+extern "C" void SetValue(int idx, int16_t val);
+extern "C" void AddFrame();
+extern "C" void SetPrev(int idx, int16_t val);
+
+extern deque<double> MfccWindow;
+// 每帧的特征向量的宽度
+const int frameWidth = 40;
+// 滑动窗口大小
+const int windowWidth = 80;
 
 #endif
