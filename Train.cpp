@@ -16,56 +16,56 @@ DenseLayer *Output;
 
 Estimator_Softmax *estimator;
 
-const int isTrain = 1; // TrainFlag
+const bool isTrain = false; // TrainFlag
 
 void buildNetwork() {
 	// todo
 	Input = new DenseLayer(windowWidth, frameWidth);
 	C1 = new ConvLayer(16, 60, 30, 21, 11, 1, 1, 0, 0);
-	//Dp1 = new DropoutLayer(16, 11, 33, 0.8, isTrain);
+	Dp1 = new DropoutLayer(16, 60, 30, 0.5, isTrain);
 	S1 = new ConvLayer(16, 15, 15, 4, 2, 4, 2, 0, 0);
 	C2 = new ConvLayer(16, 10, 10, 6, 6, 1, 1, 0, 0);
-	//Dp2 = new DropoutLayer(16, 2, 8, 0.8, isTrain);
+	Dp2 = new DropoutLayer(16, 10, 10, 0.5, isTrain);
 	D1 = new DenseLayer(1, 32);
 	D2 = new DenseLayer(1, 128);
-	//Dp3 = new DropoutLayer(1, 1, 128, 0.8, isTrain);
-	Output = new DenseLayer(1, caseNumber); // for 10 case
+	Dp3 = new DropoutLayer(1, 1, 128, 0.5, isTrain);
+	Output = new DenseLayer(1, 6); // for 10 case
 
 	estimator = new Estimator_Softmax(Output);
 
 #ifdef ENABLE_CUDA
 	Input -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	C1 -> SetActionFunc(kernel_tanh, kernel_tanhDel);
-	//Dp1 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Dp1 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	S1 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	C2 -> SetActionFunc(kernel_tanh, kernel_tanhDel);
-	//Dp2 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Dp2 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	D1 -> SetActionFunc(kernel_tanh, kernel_tanhDel);
 	D2 -> SetActionFunc(kernel_tanh, kernel_tanhDel);
-	//Dp3 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Dp3 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 	Output -> SetActionFunc(kernel_Linear, kernel_LinearDel);
 #else
 	Input -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
 	C1 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
-	//Dp1 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Dp1 -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
 	S1 -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
 	C2 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
-	//Dp2 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Dp2 -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
 	D1 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
 	D2 -> SetActionFunc(&ActiveFunction::tanh, &ActiveFunction::tanhDel);
-	//Dp3 -> SetActionFunc(kernel_Linear, kernel_LinearDel);
+	Dp3 -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
 	Output -> SetActionFunc(&ActiveFunction::Linear, &ActiveFunction::LinearDel);
 #endif
 
 	C1 -> InputLayer(Input);
-	//Dp1 -> InputLayer(C1);
-	S1 -> InputLayer(C1);
+	Dp1 -> InputLayer(C1);
+	S1 -> InputLayer(Dp1);
 	C2 -> InputLayer(S1);
-	//Dp2 -> InputLayer(C2);
-	D1 -> InputLayer(C2);
+	Dp2 -> InputLayer(C2);
+	D1 -> InputLayer(Dp2);
 	D2 -> InputLayer(D1);
-	//Dp3 -> InputLayer(D2);
-	Output -> InputLayer(D2);
+	Dp3 -> InputLayer(D2);
+	Output -> InputLayer(Dp3);
 }
 
 vector <Matrix<double>*> trainData;
