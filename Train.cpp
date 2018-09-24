@@ -15,6 +15,8 @@ const int frameWidth = 40;
 // 滑动窗口大小
 const int windowWidth = 80;
 
+const int caseNumber = 21;
+
 DenseLayer *Input;
 ConvLayer *C1; // Conv 1
 DropoutLayer *Dp1; // Dropout 1
@@ -28,20 +30,20 @@ DenseLayer *Output;
 
 Estimator_Softmax *estimator;
 
-const bool isTrain = false; // TrainFlag
+const bool isTrain = true; // TrainFlag
 
 void buildNetwork() {
 	// todo
 	Input = new DenseLayer(windowWidth, frameWidth);
-	C1 = new ConvLayer(16, 60, 30, 21, 11, 1, 1, 0, 0);
-	Dp1 = new DropoutLayer(16, 60, 30, 0.5, isTrain);
-	S1 = new ConvLayer(16, 15, 15, 4, 2, 4, 2, 0, 0);
-	C2 = new ConvLayer(16, 10, 10, 6, 6, 1, 1, 0, 0);
-	Dp2 = new DropoutLayer(16, 10, 10, 0.5, isTrain);
-	D1 = new DenseLayer(1, 32);
+	C1 = new ConvLayer(32, 60, 30, 21, 11, 1, 1, 0, 0);
+	Dp1 = new DropoutLayer(32, 60, 30, 0.5, isTrain);
+	S1 = new ConvLayer(32, 15, 15, 4, 2, 4, 2, 0, 0);
+	C2 = new ConvLayer(32, 10, 10, 6, 6, 1, 1, 0, 0);
+	Dp2 = new DropoutLayer(32, 10, 10, 0.5, isTrain);
+	D1 = new DenseLayer(1, 64);
 	D2 = new DenseLayer(1, 128);
 	Dp3 = new DropoutLayer(1, 1, 128, 0.5, isTrain);
-	Output = new DenseLayer(1, 6); // for 10 case
+	Output = new DenseLayer(1, caseNumber); // for 10 case
 
 	estimator = new Estimator_Softmax(Output);
 
@@ -128,7 +130,7 @@ void readSingleData(string dataPathStr, int idx, vector<Matrix<double>*> &data, 
 void readCaseData(string dataPathStr, double rate, double idx){
 	puts(("Reading: " + dataPathStr).c_str()); // 输出进度
 	fs::path dataPath(dataPathStr);
-	int count = 0, lim = 500;
+	int count = 0, lim = 200;
 	for(auto &p: fs::directory_iterator(dataPath)) ++count;
 	if(count > lim) count = lim;
 	int trainNum = count * rate; count = 0;
@@ -143,7 +145,7 @@ void readCaseData(string dataPathStr, double rate, double idx){
 void readTrainData(string dataPathStr, double rate) {
 	wordList.clear(); dirList.clear(); // init
 	fs::path dataPath(dataPathStr);
-	int count = 0, lim = 6;
+	int count = 0, lim = caseNumber;
 	for(auto &p: fs::directory_iterator(dataPath)) {
 		fs::path curPath = p.path();
 		if(fs::is_directory(p.status())) { 
@@ -166,7 +168,7 @@ void train() {
 
 	Optimizer optimizer(
 			&functionAbstractor,
-			0.0001,
+			0.1,
 			20000,
 			trainData,
 			trainLabel,
@@ -182,8 +184,8 @@ void train() {
 	optimizer.AddDropoutLayer(Dp3);
 
 	optimizer.SetSaveStep(5);
-	optimizer.TrainFromFile();
-	//optimizer.TrainFromNothing();
+	//optimizer.TrainFromFile();
+	optimizer.TrainFromNothing();
 
 	optimizer.Save();
 }
@@ -237,7 +239,7 @@ int main() {
 #endif
 	buildNetwork();
 	readTrainData("../data", 0.8);
-	//train();
-	test();
+	train();
+	//test();
 	return 0;
 }
