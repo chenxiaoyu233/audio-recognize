@@ -184,8 +184,8 @@ void train() {
 	optimizer.AddDropoutLayer(Dp3);
 
 	optimizer.SetSaveStep(5);
-	//optimizer.TrainFromFile();
-	optimizer.TrainFromNothing();
+	optimizer.TrainFromFile();
+	//optimizer.TrainFromNothing();
 
 	optimizer.Save();
 }
