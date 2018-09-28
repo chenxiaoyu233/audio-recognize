@@ -30,7 +30,7 @@ DenseLayer *Output;
 
 Estimator_Softmax *estimator;
 
-const bool isTrain = true; // TrainFlag
+const bool isTrain = false; // TrainFlag
 
 void buildNetwork() {
 	// todo
@@ -168,7 +168,7 @@ void train() {
 
 	Optimizer optimizer(
 			&functionAbstractor,
-			0.1,
+			0.01,
 			20000,
 			trainData,
 			trainLabel,
@@ -239,7 +239,7 @@ int main() {
 #endif
 	buildNetwork();
 	readTrainData("../data", 0.8);
-	train();
-	//test();
+	//train();
+	test();
 	return 0;
 }
