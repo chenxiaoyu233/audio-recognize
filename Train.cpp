@@ -1,7 +1,20 @@
 #include "CXYNN/CXYNeuronNetwork.h" // add the NN's header
 #include "compute-mfcc/Mfcc.h" // 用于计算mfcc的库
 
-const int caseNumber = 6;
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
+
+void GenMfccFiles() {
+	extractMfcc("../data");
+}
+
+// 每帧的特征向量的宽度
+const int frameWidth = 40;
+// 滑动窗口大小
+const int windowWidth = 30;
+
+const int caseNumber = 12;
 
 DenseLayer *Input;
 ConvLayer *C1; // Conv 1
@@ -20,16 +33,26 @@ const bool isTrain = false; // TrainFlag
 
 void buildNetwork() {
 	// todo
+	//Input = new DenseLayer(windowWidth, frameWidth);
+	//C1 = new ConvLayer(32, 60, 30, 21, 11, 1, 1, 0, 0);
+	//Dp1 = new DropoutLayer(32, 60, 30, 0.5, isTrain);
+	//S1 = new ConvLayer(32, 15, 15, 4, 2, 4, 2, 0, 0);
+	//C2 = new ConvLayer(32, 10, 10, 6, 6, 1, 1, 0, 0);
+	//Dp2 = new DropoutLayer(32, 10, 10, 0.5, isTrain);
+	//D1 = new DenseLayer(1, 64);
+	//D2 = new DenseLayer(1, 128);
+	//Dp3 = new DropoutLayer(1, 1, 128, 0.5, isTrain);
+	//Output = new DenseLayer(1, caseNumber); // for 10 case
 	Input = new DenseLayer(windowWidth, frameWidth);
-	C1 = new ConvLayer(16, 60, 30, 21, 11, 1, 1, 0, 0);
-	Dp1 = new DropoutLayer(16, 60, 30, 0.5, isTrain);
-	S1 = new ConvLayer(16, 15, 15, 4, 2, 4, 2, 0, 0);
-	C2 = new ConvLayer(16, 10, 10, 6, 6, 1, 1, 0, 0);
-	Dp2 = new DropoutLayer(16, 10, 10, 0.5, isTrain);
+	C1 = new ConvLayer(64, 11, 33, 20, 8, 1, 1, 0, 0);
+	Dp1 = new DropoutLayer(64, 11, 33, 0.5, isTrain);
+	S1 = new ConvLayer(64, 11, 11, 1, 3, 1, 3, 0, 0);
+	C2 = new ConvLayer(64, 2, 8, 10, 4, 1, 1, 0, 0);
+	Dp2 = new DropoutLayer(64, 2, 8, 0.5, isTrain);
 	D1 = new DenseLayer(1, 32);
 	D2 = new DenseLayer(1, 128);
 	Dp3 = new DropoutLayer(1, 1, 128, 0.5, isTrain);
-	Output = new DenseLayer(1, 6); // for 10 case
+	Output = new DenseLayer(1, caseNumber); // for 10 case
 
 	estimator = new Estimator_Softmax(Output);
 
