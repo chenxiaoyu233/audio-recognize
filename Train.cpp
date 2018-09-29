@@ -89,6 +89,11 @@ void BuildPredictor() {
 		100
 	);
 
+	// add dropout layer
+	predictor -> AddDropoutLayer(Dp1);
+	predictor -> AddDropoutLayer(Dp2);
+	predictor -> AddDropoutLayer(Dp3);
+
 	Matrix<double> *mat;
 	FOR(i, 1, caseNumber) {
 		mat = new Matrix<double>(1, 1);
@@ -99,7 +104,13 @@ void BuildPredictor() {
 
 FILE *logOut;
 
+bool CXYNN_INIT_FLAG = false;
+
 extern "C" void InitCXYNN() {
+	// 保证在整个游戏过程中, 这个地方只初始化一次
+	if(CXYNN_INIT_FLAG) return; //  已经初始化过了 
+	CXYNN_INIT_FLAG = true;
+
 	buildNetwork();
 	BuildPredictor();
 	//logOut = fopen("Assets/CppLog", "w");
@@ -108,18 +119,26 @@ extern "C" void InitCXYNN() {
 Matrix<double> windowMatrixBuffer(windowWidth, frameWidth);
 
 extern "C" int Predict() {
-	//fprintf(logOut, "\n\n");
+	double len = 0;
 	FOR(x, 1, windowWidth) {
 		FOR(y, 1, frameWidth) {
 			windowMatrixBuffer(x, y) = MfccWindow[(x-1) * frameWidth + (y-1)];
-			//fprintf(logOut, "%.4lf ", MfccWindow[(x-1) * frameWidth + (y - 1)]);
+			len += windowMatrixBuffer(x, y) * windowMatrixBuffer(x, y);
 		}
-		//fprintf(logOut, "\n");
+	}
+	len = sqrt(len);
+	if(len == 0) len = 0.000001;
+	len /= 100;
+
+	FOR(x, 1, windowWidth) FOR(y, 1, frameWidth) {
+		windowMatrixBuffer(x, y) /= len;
 	}
 	return predictor -> Classify(&windowMatrixBuffer);
 }
 
+int testflag = 0;
+
 extern "C" int testCS() {
-	return 233;
+	return testflag++;
 }
 
