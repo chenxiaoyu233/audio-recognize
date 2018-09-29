@@ -13,9 +13,9 @@ void GenMfccFiles() {
 // 每帧的特征向量的宽度
 const int frameWidth = 40;
 // 滑动窗口大小
-const int windowWidth = 80;
+const int windowWidth = 30;
 
-const int caseNumber = 21;
+const int caseNumber = 12;
 
 DenseLayer *Input;
 ConvLayer *C1; // Conv 1
@@ -34,13 +34,23 @@ const bool isTrain = false; // TrainFlag
 
 void buildNetwork() {
 	// todo
+	//Input = new DenseLayer(windowWidth, frameWidth);
+	//C1 = new ConvLayer(32, 60, 30, 21, 11, 1, 1, 0, 0);
+	//Dp1 = new DropoutLayer(32, 60, 30, 0.5, isTrain);
+	//S1 = new ConvLayer(32, 15, 15, 4, 2, 4, 2, 0, 0);
+	//C2 = new ConvLayer(32, 10, 10, 6, 6, 1, 1, 0, 0);
+	//Dp2 = new DropoutLayer(32, 10, 10, 0.5, isTrain);
+	//D1 = new DenseLayer(1, 64);
+	//D2 = new DenseLayer(1, 128);
+	//Dp3 = new DropoutLayer(1, 1, 128, 0.5, isTrain);
+	//Output = new DenseLayer(1, caseNumber); // for 10 case
 	Input = new DenseLayer(windowWidth, frameWidth);
-	C1 = new ConvLayer(32, 60, 30, 21, 11, 1, 1, 0, 0);
-	Dp1 = new DropoutLayer(32, 60, 30, 0.5, isTrain);
-	S1 = new ConvLayer(32, 15, 15, 4, 2, 4, 2, 0, 0);
-	C2 = new ConvLayer(32, 10, 10, 6, 6, 1, 1, 0, 0);
-	Dp2 = new DropoutLayer(32, 10, 10, 0.5, isTrain);
-	D1 = new DenseLayer(1, 64);
+	C1 = new ConvLayer(64, 11, 33, 20, 8, 1, 1, 0, 0);
+	Dp1 = new DropoutLayer(64, 11, 33, 0.5, isTrain);
+	S1 = new ConvLayer(64, 11, 11, 1, 3, 1, 3, 0, 0);
+	C2 = new ConvLayer(64, 2, 8, 10, 4, 1, 1, 0, 0);
+	Dp2 = new DropoutLayer(64, 2, 8, 0.5, isTrain);
+	D1 = new DenseLayer(1, 32);
 	D2 = new DenseLayer(1, 128);
 	Dp3 = new DropoutLayer(1, 1, 128, 0.5, isTrain);
 	Output = new DenseLayer(1, caseNumber); // for 10 case
@@ -117,7 +127,7 @@ void readSingleData(string dataPathStr, int idx, vector<Matrix<double>*> &data, 
 			}
 		len = sqrt(len);
 		if(len == 0) len = 0.00001;
-		len /= 100; // 将模长设置为100, 增大刺激的效果
+		len /= 50; // 将模长设置为100, 增大刺激的效果
 		FOR(x, 1, windowWidth) FOR(y, 1, frameWidth) (*win)(x, y) /= len; // 单位化
 
 		data.push_back(win);
