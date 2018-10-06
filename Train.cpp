@@ -1,18 +1,9 @@
 #include "CXYNN/CXYNeuronNetwork.h" // add the NN's header
 #include "compute-mfcc/Mfcc.h" // 用于计算mfcc的库
 
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+//#include <experimental/filesystem>
+//namespace fs = std::experimental::filesystem;
 
-
-void GenMfccFiles() {
-	extractMfcc("../data");
-}
-
-// 每帧的特征向量的宽度
-const int frameWidth = 40;
-// 滑动窗口大小
-const int windowWidth = 30;
 
 const int caseNumber = 12;
 
