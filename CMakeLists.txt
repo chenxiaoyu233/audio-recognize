@@ -4,6 +4,7 @@ cmake_minimum_required (VERSION 2.6)
 
 # 项目信息
 project (Audio)
+SET (CMAKE_CXX_COMPILER "g++")
 
 # 选项
 option (ENABLE_CUDA "enable the cuda" OFF)

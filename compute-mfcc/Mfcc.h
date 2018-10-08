@@ -15,6 +15,6 @@ extern deque<double> MfccWindow;
 // 每帧的特征向量的宽度
 const int frameWidth = 40;
 // 滑动窗口大小
-const int windowWidth = 80;
+const int windowWidth = 30;
 
 #endif

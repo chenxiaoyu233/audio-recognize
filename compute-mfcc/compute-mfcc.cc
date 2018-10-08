@@ -145,7 +145,12 @@ int16_t *FrameBuffer;
 int len; // 每一帧的输入的长度
 deque <double> MfccWindow;
 
+bool MFCC_INIT_FLAG = false; // 保证MFCC只初始化一次
+
 extern "C" void InitMfcc(int N) {
+	if(MFCC_INIT_FLAG) return;
+	MFCC_INIT_FLAG = true;
+
 	mfccComputer = mfccCreate();
 	len = N;
 	FrameBuffer = new int16_t[N];

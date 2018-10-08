@@ -5,7 +5,7 @@
 //namespace fs = std::experimental::filesystem;
 
 
-const int caseNumber = 12;
+const int caseNumber = 10;
 
 DenseLayer *Input;
 ConvLayer *C1; // Conv 1
@@ -148,6 +148,22 @@ extern "C" int Predict() {
 		windowMatrixBuffer(x, y) /= len;
 	}
 	return predictor -> Classify(&windowMatrixBuffer);
+}
+
+double Prob[caseNumber + 5]; // 网络输出的概率
+
+extern "C" void calcProb() {
+	double tot = 0;
+	for(int i = 1; i <= caseNumber; i++) {
+		tot += exp( (*Output)(i).forwardBuffer[1] );
+	}
+	for(int i = 1; i <= caseNumber; i++) {
+		Prob[i] = exp( (*Output)(i).forwardBuffer[1] ) / tot;
+	}
+}
+
+extern "C" double readProb(int idx) {
+	return Prob[idx];
 }
 
 int testflag = 0;
