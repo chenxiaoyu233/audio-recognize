@@ -147,7 +147,7 @@ deque <double> MfccWindow;
 
 bool MFCC_INIT_FLAG = false; // 保证MFCC只初始化一次
 
-extern "C" void InitMfcc(int N) {
+extern "C" __declspec(dllexport) void InitMfcc(int N) {
 	if(MFCC_INIT_FLAG) return;
 	MFCC_INIT_FLAG = true;
 
@@ -161,11 +161,11 @@ extern "C" void InitMfcc(int N) {
 }
 
 // 设置当前FrameBuffer的某一位
-extern "C" void SetValue(int idx, int16_t val) {
+extern "C" __declspec(dllexport) void SetValue(int idx, int16_t val) {
 	FrameBuffer[idx] = val;
 }
 
-extern "C" void AddFrame() {
+extern "C" __declspec(dllexport) void AddFrame() {
 	vector<double> spec = mfccComputer -> processFrame(FrameBuffer, len);
 	// Debug
 	//for( int i = 0; i < spec.size()-1; i++) fprintf(logOut, "%.4lf ", spec[i]);
@@ -181,6 +181,6 @@ extern "C" void AddFrame() {
 	for(int i = 0; i < spec.size()-1; i++) MfccWindow.pop_front();
 }
 
-extern "C" void SetPrev(int idx, int16_t val) {
+extern "C" __declspec(dllexport) void SetPrev(int idx, int16_t val) {
 	mfccComputer -> prevsamples[idx] = val;
 }

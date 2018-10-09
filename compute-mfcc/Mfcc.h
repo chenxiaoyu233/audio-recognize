@@ -6,10 +6,10 @@
 using namespace std;
 
 extern FILE *logOut;
-extern "C" void InitMfcc(int len);
-extern "C" void SetValue(int idx, int16_t val);
-extern "C" void AddFrame();
-extern "C" void SetPrev(int idx, int16_t val);
+extern "C" __declspec(dllexport) void InitMfcc(int len);
+extern "C" __declspec(dllexport) void SetValue(int idx, int16_t val);
+extern "C" __declspec(dllexport) void AddFrame();
+extern "C" __declspec(dllexport) void SetPrev(int idx, int16_t val);
 
 extern deque<double> MfccWindow;
 // 每帧的特征向量的宽度

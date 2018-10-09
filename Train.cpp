@@ -120,7 +120,7 @@ FILE *logOut;
 
 bool CXYNN_INIT_FLAG = false;
 
-extern "C" void InitCXYNN() {
+extern "C" __declspec(dllexport) void InitCXYNN() {
 	// 保证在整个游戏过程中, 这个地方只初始化一次
 	if(CXYNN_INIT_FLAG) return; //  已经初始化过了 
 	CXYNN_INIT_FLAG = true;
@@ -132,7 +132,7 @@ extern "C" void InitCXYNN() {
 
 Matrix<double> windowMatrixBuffer(windowWidth, frameWidth);
 
-extern "C" int Predict() {
+extern "C" __declspec(dllexport) int Predict() {
 	double len = 0;
 	FOR(x, 1, windowWidth) {
 		FOR(y, 1, frameWidth) {
@@ -152,7 +152,7 @@ extern "C" int Predict() {
 
 double Prob[caseNumber + 5]; // 网络输出的概率
 
-extern "C" void calcProb() {
+extern "C" __declspec(dllexport) void calcProb() {
 	double tot = 0;
 	for(int i = 1; i <= caseNumber; i++) {
 		tot += exp( (*Output)(i).forwardBuffer[1] );
@@ -162,13 +162,13 @@ extern "C" void calcProb() {
 	}
 }
 
-extern "C" double readProb(int idx) {
+extern "C" __declspec(dllexport) double readProb(int idx) {
 	return Prob[idx];
 }
 
 int testflag = 0;
 
-extern "C" int testCS() {
+extern "C" __declspec(dllexport) int testCS() {
 	return testflag++;
 }
 
