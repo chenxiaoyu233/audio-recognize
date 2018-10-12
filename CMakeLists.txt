@@ -23,9 +23,16 @@ add_subdirectory ("${PROJECT_SOURCE_DIR}/CXYNN")
 add_subdirectory ("${PROJECT_SOURCE_DIR}/compute-mfcc")
 
 # 添加可执行文件
-add_library (Audio SHARED Train.cpp)
+
+# add_library (Audio SHARED Train.cpp)
+add_library (Audio MODULE Train.cpp)
 target_link_libraries (Audio CXYNeuronNetwork)
 target_link_libraries (Audio mfcc)
+
+if ( APPLE )
+	SET_TARGET_PROPERTIES (Audio PROPERTIES BUNDLE TRUE)
+endif ()
+
 #target_link_libraries (Audio stdc++fs)
 
 set (CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
