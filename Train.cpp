@@ -97,7 +97,8 @@ void BuildPredictor() {
 		2000,
 		trainData,
 		trainLabel,
-		"Assets/Plugins/audio-recognize/debug/train_backup",
+		//"Assets/Plugins/audio-recognize/debug/train_backup",
+		"train_backup",
 		2333,
 		-0.20, 0.20, 0.000001,
 		100
